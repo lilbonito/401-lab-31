@@ -1,6 +1,6 @@
-import superagent from 'superagent';
-import React, { useState, useEffect } from 'react';
-import {LoginContext } from './context.js';
+import React, { useState } from "react";
+import superagent from "superagent";
+import { LoginContext } from "./context.js";
 
 const API = process.env.REACT_APP_API;
 
@@ -8,68 +8,58 @@ const If = props => {
   return !!props.condition ? props.children : null;
 };
 
-function Login(props){
-const [username, setUsername] = useState("Username");
-const [password, setPassword] = useState("Password")
+export default function HookedLogin(props) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-
-function changeUsername( e ) {
-  setUsername([e.target.value])
-}
-
-function changePassword( e ) {
-  setPassword([e.target.value])
-}
-
-  // handleSubmit = (e, loginMethodFromContext) => {
-  //   e.preventDefault();
-  //   superagent
-  //   .post(`${API}/signin`)
-  //   .auth(props.state.username, props.state.password)
-  //   .then(response => {
-  //     let token = response.text;
-  //     loginMethodFromContext(token);
-  //   })
-  //   .catch(console.error);
-  // };
-
-
-    return (
-      <LoginContext.Consumer>
-        {context => {
-          return (
-            <>
-              <If condition={context.loggedIn}>
-                <button onClick={context.logout}>
-                  Log Out
-                </button>
-              </If>
-              <If condition={!context.loggedIn}>
-                <div>
-                  <form onSubmit={e => props.handleSubmit(e, context.login)}>
-                    <input
-                    value={username}
-                      placeholder="username"
-                      name="username"
-                      onChange={changeUsername}
-                    />
-                    <input
-                    value={password}
-                      placeholder="password"
-                      name="password"
-                      type="password"
-                      onChange={changePassword}
-                    />
-                    <input type="submit" value="login" />
-                  </form>
-                </div>
-              </If>
-            </>
-          );
-        }}
-      </LoginContext.Consumer>
-    );
+  function changeUsername(e) {
+    setUsername(e.target.value);
   }
 
+  function changePassword(e) {
+    setPassword(e.target.value);
+  }
 
-export default Login;
+  function handleSubmit(e, loginMethodFromContext) {
+    e.preventDefault();
+    superagent
+      .post(`${API}/signin`)
+      .auth(username, password)
+      .then(response => {
+        let token = response.text;
+        loginMethodFromContext(token);
+      })
+      .catch(console.error);
+  }
+  return (
+    <LoginContext.Consumer>
+      {context => {
+        return (
+          <>
+            <If condition={context.loggedIn}>
+              <button onClick={context.logout}>Log Out</button>
+            </If>
+            <If condition={!context.loggedIn}>
+              <div>
+                <form onSubmit={e => handleSubmit(e, context.login)}>
+                  <input
+                    placeholder="username"
+                    name="username"
+                    onChange={changeUsername}
+                  />
+                  <input
+                    placeholder="password"
+                    name="password"
+                    type="password"
+                    onChange={changePassword}
+                  />
+                  <input type="submit" value="login" />
+                </form>
+              </div>
+            </If>
+          </>
+        );
+      }}
+    </LoginContext.Consumer>
+  );
+}

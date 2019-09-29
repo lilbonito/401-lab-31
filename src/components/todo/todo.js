@@ -1,74 +1,67 @@
-import React, { useEffect, useState, useReducer } from 'react';
-
-import Auth from '../auth/auth.js';
-
-import styles from './todo.module.scss';
+import React, { useState, useReducer } from "react";
+import Auth from "../auth/auth.js";
+import styles from "./todo.module.scss";
 
 const initialState = {
-  item: '',
   toDoItems: []
 };
 
 function reducer(state, action) {
   switch (action.type) {
-    case "update Item list":
-    return {...state, item: action.data };
-    case "update todo items":
-    return {...state, toDoItems: action.data};
+    case "add":
+      let itemToAdd = { title: action.data, status: false };
+      return { ...state, toDoItems: [...state.toDoItems, itemToAdd] };
+    case "toggle":
+      let toDoItems = state.toDoItems.map((item, idx) =>
+        idx === action.data ? { title: item.title, status: !item.status } : item
+      );
+      return { ...state, toDoItems };
     default:
-    throw new Error();
-
-
+      throw new Error();
   }
-};
+}
 
-function Todo (props) {
+export default function Todo(props) {
+  const [item, setItem] = useState("");
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  const[state, dispatch] = useReducer(reducer, initialState);
-
-
-  // handleForm = (e) => {
-  //   e.preventDefault();
-  //   e.target.reset();
-  //   let item = { title:this.state.item, status:false };
-  //   this.setState({toDoItems:[...this.state.toDoItems, item]});
-  // };
-
-  // handleChange = (e) => {
-  //   this.setState( {item:e.target.value} );
-  // }
-
-  toggle = (e,id) => {
+  function handleForm(e) {
     e.preventDefault();
-    let toDoItems = state.toDoItems.map( (item,idx) =>
-      idx === id ? {title:item.title, status:!item.status} : item
-    );
-    this.setState({toDoItems});
-  };
+    e.target.reset();
+    dispatch({ type: "add", data: item });
+  }
 
-    return (
-      <section className={styles.todo}>
+  function handleChange(e) {
+    setItem(e.target.value);
+  }
 
-        <Auth capability="read">
-          {state.toDoItems.map((item, idx) =>
-            <div key={idx} onClick={(e) => toggle(e, idx)}>
-              <span className={styles[`complete-${item.status}`]}> {item.title} </span>
-            </div>
-          )}
-        </Auth>
+  function toggle(e, id) {
+    e.preventDefault();
+    dispatch({ type: "toggle", data: id });
+  }
 
-        {/* <Auth capability="create">
-          <form onSubmit={this.handleForm}>
-            <input
-              onChange={this.handleChange}
-              name="item"
-              placeholder="Add To Do List Item Here"
-            />
-          </form>
-        </Auth> */}
+  return (
+    <section className={styles.todo}>
+      <Auth capability="read">
+        {state.toDoItems.map((item, idx) => (
+          <div key={idx} onClick={e => toggle(e, idx)}>
+            <span className={styles[`complete-${item.status}`]}>
+              {" "}
+              {item.title}{" "}
+            </span>
+          </div>
+        ))}
+      </Auth>
 
-      </section>
-    );
-  };
-
-export default Todo;
+      <Auth capability="create">
+        <form onSubmit={handleForm}>
+          <input
+            onChange={handleChange}
+            name="item"
+            placeholder="Add To Do List Item Here"
+          />
+        </form>
+      </Auth>
+    </section>
+  );
+}
